@@ -5,18 +5,24 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.Date;
 
 @Component
-public class HelloSender1 implements RabbitTemplate.ConfirmCallback{
+public class HelloSender1 implements RabbitTemplate.ConfirmCallback {
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private JedisPool      jedisPool;
 
     public void send() {
-        String sendMsg = "hello1 " + new Date().toLocaleString();
-        System.out.println("Sender1 : "+sendMsg);
-        rabbitTemplate.convertAndSend("helloQueue",sendMsg);
+        Jedis   resource = jedisPool.getResource();
+        Integer reminder = Integer.valueOf(resource.get("reminder"));
+        String  sendMsg  = "hello1 " + new Date().toLocaleString() + ",goods code:" + reminder;
+        System.out.println("Sender1 : " + sendMsg);
+        rabbitTemplate.convertAndSend("helloQueue", sendMsg);
     }
 
 
